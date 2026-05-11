@@ -404,22 +404,22 @@ An interactive ai avatar no longer requires stitching together separate ASR, LLM
 
 ## FAQ
 
-**Q: What latency can I expect from an interactive AI avatar?**
+**Q: How do I build an AI avatar with real-time voice interaction from scratch?**
 
-The end-to-end ai avatar response latency is under 1.5 seconds, covering speech recognition, LLM reasoning, text-to-speech synthesis, and lip-sync rendering. The driving latency for audio input to the digital human is under 200 milliseconds.
+Use ZEGOCLOUD's Conversational AI platform, which provides the AI Agent API for registering agents and creating digital human instances, plus the ZEGO Express SDK for WebRTC streaming. The server handles API orchestration and authentication, while the browser renders the ai avatar video and captures microphone input. The complete code in this article covers all three layers.
 
-**Q: Can I customize the AI avatar's LLM and TTS providers?**
+**Q: What is the best framework for creating AI avatars for the web?**
 
-Yes. The RegisterAgent API accepts custom LLM endpoints (any OpenAI-compatible API) and TTS vendor configurations for the ai avatar, so swapping providers requires no changes to the streaming infrastructure.
+React paired with a Next.js backend works well for ai avatar development because ZEGOCLOUD provides native WebRTC support through the Express SDK. The architecture in this guide uses React for the UI layer and Next.js API routes for server-side authentication, keeping the ai avatar creation process straightforward with no custom media pipeline needed.
 
-**Q: How many concurrent AI avatar instances can I run simultaneously?**
+**Q: How much does it cost to build and deploy an AI avatar using cloud APIs?**
 
-Each ZEGOCLOUD account supports up to 10 concurrent digital human instances by default. The server code includes automatic cleanup of stale ai avatar instances when the concurrent limit is reached, then retries the creation request.
+ZEGOCLOUD offers a free tier for ai avatar development. The primary costs come from the LLM and TTS providers you choose (for example, ByteDance Doubao or OpenAI-compatible endpoints). The digital human rendering and RTC streaming are included in the ZEGOCLOUD platform, so ai avatar software development avoids the expense of building a custom inference pipeline.
 
-**Q: Can I deploy the AI avatar on mobile browsers?**
+**Q: Can I use my own LLM (like GPT-4 or Claude) for the AI avatar response generation?**
 
-Yes. The ZEGO Express SDK supports WebRTC on modern mobile browsers including Chrome and Safari on iOS and Android. Setting ConfigId to "web" and EncodeCode to "H264" ensures the ai avatar renders correctly across all platforms.
+Yes. The RegisterAgent API accepts any OpenAI-compatible endpoint, so you can plug in GPT-4, Claude, or local models when creating an ai avatar. The LLM configuration, TTS vendor, and ASR provider are all set independently, giving you full control over the ai avatar development stack without changing the streaming infrastructure.
 
-**Q: What happens if the AI avatar cannot access the microphone?**
+**Q: How do I reduce latency when building a voice-interactive AI avatar?**
 
-The frontend gracefully handles microphone access failures by continuing to render the ai avatar video stream without publishing local audio. Voice interaction requires microphone access, but the visual experience remains functional without it.
+The end-to-end latency for an ai avatar built with ZEGOCLOUD is under 1.5 seconds by default. Key optimizations include using `jitterBufferTarget: 500` on the WebRTC player, setting `EncodeCode: "H264"` for browser-compatible decoding, and choosing a geographically close LLM endpoint. The ai avatar rendering pipeline runs on ZEGOCLOUD's infrastructure, so video delivery latency is handled by the platform.
