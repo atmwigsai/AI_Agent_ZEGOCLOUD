@@ -7,7 +7,7 @@ tags: aiavatar, webrtc, react, nextjs, digitalhuman
 
 # How to Build an Interactive AI Avatar
 
-Building an ai avatar that speaks, listens, and responds in real time requires orchestrating multiple AI services with low-latency video streaming. ZEGOCLOUD's Conversational AI platform abstracts this complexity into a unified API, enabling developers to build lifelike, voice-interactive digital humans with sub-1.5-second response latency. This guide walks through the complete architecture and production-ready code for deploying interactive digital humans on the web, from server API authentication to browser-side video rendering.
+Building an ai avatar that speaks, listens, and responds in real time requires orchestrating multiple AI services with low-latency video streaming. ZEGOCLOUD's Conversational AI solution provides a server-driven architecture that chains ASR, LLM, TTS, and digital human rendering into a single real-time pipeline. With sub-1.5-second end-to-end response latency and WebRTC video delivery, it lets developers deploy lifelike voice-interactive digital humans without managing separate AI services. This guide walks through the complete architecture and production-ready code for deploying interactive digital humans on the web, from server API authentication to browser-side video rendering.
 
 ## How to Build an Interactive AI Avatar
 
@@ -15,7 +15,7 @@ There is a peculiar irony in building real-time systems: the faster they must re
 
 ### Architecture Overview
 
-The application follows a three-tier architecture that separates concerns between the browser, server, and ZEGO Cloud infrastructure:
+The application follows a three-tier architecture that separates concerns between the browser, server, and ZEGOCLOUD infrastructure:
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -44,7 +44,7 @@ The application follows a three-tier architecture that separates concerns betwee
          │                        │
          ▼                        ▼
 ┌─────────────────────────────────────────────────────┐
-│  ZEGO Cloud                                         │
+│  ZEGOCLOUD                                           │
 │  ┌────────────────┐  ┌────────────────────────┐    │
 │  │ AI Agent API   │  │ RTC Infrastructure     │    │
 │  └────────────────┘  │ Room · Stream · Relay  │    │
@@ -56,14 +56,14 @@ The application follows a three-tier architecture that separates concerns betwee
 └─────────────────────────────────────────────────────┘
 ```
 
-The browser initiates a conversation by calling server APIs to register the agent, create a digital human instance, and obtain an RTC token. It then connects to the RTC room via the ZEGO Express SDK, publishes the user's audio stream, and receives the avatar's video stream in real time. The server never handles media directly; it only orchestrates the ZEGO Cloud APIs and generates authentication tokens.
+The browser initiates a conversation by calling server APIs to register the agent, create a digital human instance, and obtain an RTC token. It then connects to the RTC room via the ZEGO Express SDK, publishes the user's audio stream, and receives the avatar's video stream in real time. The server never handles media directly; it only orchestrates the ZEGOCLOUD APIs and generates authentication tokens.
 
 ### Prerequisites
 
 Before starting, ensure the following are in place:
 
 - **Node.js 18+** and npm installed
-- A [ZEGOCLOUD account](https://console.zego.im/) with App ID and Server Secret
+- A [ZEGOCLOUD account](https://console.zegocloud.com/account/login) with App ID and Server Secret
 - A digital human avatar ID (use the public test avatar `c4b56d5c-db98-4d91-86d4-5a97b507da97`)
 
 The project structure separates server and client code:
@@ -83,7 +83,7 @@ examples/
 
 ### Step 1: Server API Authentication
 
-All requests to the ZEGO AI Agent API require MD5 signature authentication. The signature combines the App ID, a random nonce, the server secret, and a Unix timestamp into an MD5 hash, which prevents tampering with request parameters while keeping the implementation straightforward.
+All requests to the ZEGOCLOUD AI Agent API require MD5 signature authentication. The signature combines the App ID, a random nonce, the server secret, and a Unix timestamp into an MD5 hash, which prevents tampering with request parameters while keeping the implementation straightforward.
 
 ```javascript
 import crypto from "crypto";
@@ -123,7 +123,7 @@ The `sendAgentRequest` function serves as the foundation for all subsequent API 
 
 ### Step 2: Register the AI Agent
 
-The `RegisterAgent` API configures the entire AI pipeline in a single call, which is rather elegant compared to managing separate service endpoints. This is where the avatar's language model, voice, and speech recognition provider are defined.
+The `RegisterAgent` API configures the entire AI pipeline in a single call. This is where the avatar's language model, voice, and speech recognition provider are defined.
 
 ```javascript
 // POST /api/agent
@@ -284,7 +284,7 @@ The binary format packs the expiration timestamp, IV length, IV, encrypted paylo
 
 ### Step 5: Frontend Connection and Streaming
 
-The React frontend orchestrates the entire flow: register agent, create instance, get token, initialize the RTC engine, join the room, publish audio, and receive the avatar's video stream. It turns out that most of the complexity lives in sequencing these steps correctly and handling the WebRTC events.
+The React frontend orchestrates the entire flow: register agent, create instance, get token, initialize the RTC engine, join the room, publish audio, and receive the avatar's video stream.
 
 ```jsx
 const startConversation = async () => {
@@ -400,26 +400,26 @@ Open the browser at `http://localhost:5173` and click "Start Conversation." The 
 
 ## Conclusion
 
-An interactive ai avatar no longer requires stitching together separate ASR, LLM, TTS, and rendering services. ZEGOCLOUD's Conversational AI platform unifies the entire pipeline behind three server APIs and a standard WebRTC SDK. With the patterns in this guide, a production-ready digital human deploys in under 200 lines of server code and a single React component, achieving sub-1.5-second end-to-end latency for customer service, virtual companions, or live commerce.
+An interactive ai avatar no longer requires stitching together separate ASR, LLM, TTS, and rendering services. ZEGOCLOUD's Conversational AI platform unifies the entire pipeline behind three server APIs and a standard WebRTC SDK. With the patterns in this guide, a production-ready ai avatar deploys in under 200 lines of server code and a single React component, achieving sub-1.5-second end-to-end latency for customer service, virtual companions, or live commerce.
 
 ## FAQ
 
-**Q: What latency can I expect from the AI avatar pipeline?**
+**Q: What latency can I expect from an interactive AI avatar?**
 
-The end-to-end response latency is under 1.5 seconds, which covers speech recognition, LLM reasoning, text-to-speech synthesis, and lip-sync rendering. The driving latency for audio or text input to the digital human is under 200 milliseconds.
+The end-to-end ai avatar response latency is under 1.5 seconds, covering speech recognition, LLM reasoning, text-to-speech synthesis, and lip-sync rendering. The driving latency for audio input to the digital human is under 200 milliseconds.
 
-**Q: Can I use my own LLM and TTS providers instead of the defaults?**
+**Q: Can I customize the AI avatar's LLM and TTS providers?**
 
-The RegisterAgent API accepts custom LLM endpoints (any OpenAI-compatible API) and TTS vendor configurations, so swapping providers requires no changes to the streaming infrastructure. During testing, using "zego_test" as the API key for both LLM and TTS enables evaluation of the platform before connecting custom services.
+Yes. The RegisterAgent API accepts custom LLM endpoints (any OpenAI-compatible API) and TTS vendor configurations for the ai avatar, so swapping providers requires no changes to the streaming infrastructure.
 
-**Q: How many concurrent digital human instances can run simultaneously?**
+**Q: How many concurrent AI avatar instances can I run simultaneously?**
 
-Each ZEGOCLOUD account supports up to 10 concurrent digital human instances by default. The server code includes automatic cleanup of stale instances when the concurrent limit is reached, then retries the creation request.
+Each ZEGOCLOUD account supports up to 10 concurrent digital human instances by default. The server code includes automatic cleanup of stale ai avatar instances when the concurrent limit is reached, then retries the creation request.
 
-**Q: Does the avatar work on mobile browsers?**
+**Q: Can I deploy the AI avatar on mobile browsers?**
 
-The ZEGO Express SDK supports WebRTC on modern mobile browsers including Chrome and Safari on iOS and Android. Setting ConfigId to "web" and EncodeCode to "H264" ensures browser-compatible video encoding across platforms.
+Yes. The ZEGO Express SDK supports WebRTC on modern mobile browsers including Chrome and Safari on iOS and Android. Setting ConfigId to "web" and EncodeCode to "H264" ensures the ai avatar renders correctly across all platforms.
 
-**Q: What happens if the user's microphone is unavailable?**
+**Q: What happens if the AI avatar cannot access the microphone?**
 
-The frontend gracefully handles microphone access failures by continuing to render the avatar video stream without publishing local audio. Voice interaction requires microphone access, but the visual experience remains functional without it.
+The frontend gracefully handles microphone access failures by continuing to render the ai avatar video stream without publishing local audio. Voice interaction requires microphone access, but the visual experience remains functional without it.
