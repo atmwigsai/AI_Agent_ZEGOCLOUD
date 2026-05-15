@@ -7,7 +7,7 @@ tags: aiavatar, android, kotlin, webrtc, digitalhuman
 
 # How to Build an Interactive AI Avatar App for Android
 
-Building an ai avatar that listens, speaks, and responds in real time on Android means chaining speech recognition, language modeling, synthesis, and lip-sync rendering while streaming video to a mobile device. This guide covers the complete architecture and Kotlin code for deploying a voice-interactive digital human on Android, from server API setup to native video rendering.
+Building an AI avatar that listens, speaks, and responds in real time on Android means chaining speech recognition, language modeling, synthesis, and lip-sync rendering while streaming video to a mobile device. This guide covers the complete architecture and Kotlin code for deploying a voice-interactive digital human on Android, from server API setup to native video rendering.
 
 **Get the complete source code:**
 - Android + Web client + server: [ZEGOCLOUD/blog-interactive-ai-avatar](https://github.com/ZEGOCLOUD/blog-interactive-ai-avatar)
@@ -431,7 +431,7 @@ Configure `local.properties` with your ZEGO App ID and the server URL (use `http
 
 ## Conclusion
 
-An interactive ai avatar on Android no longer requires stitching separate ASR, LLM, TTS, and rendering services. ZEGOCLOUD's Conversational AI platform unifies the pipeline behind three server APIs and the ZEGO Express SDK, delivering sub-1.5-second end-to-end latency with 1080P digital human rendering. The patterns in this guide deploy a production-ready digital human in a single Kotlin Activity and three Next.js API routes, suitable for customer service, virtual companions, or live commerce on mobile devices.
+An interactive AI avatar on Android no longer requires stitching separate ASR, LLM, TTS, and rendering services. ZEGOCLOUD's Conversational AI platform unifies the pipeline behind three server APIs and the ZEGO Express SDK, delivering sub-1.5-second end-to-end latency with 1080P digital human rendering. The patterns in this guide deploy a production-ready digital human in a single Kotlin Activity and three Next.js API routes, suitable for customer service, virtual companions, or live commerce on mobile devices.
 
 ## FAQ
 
