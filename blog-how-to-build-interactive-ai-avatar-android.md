@@ -1,8 +1,7 @@
 Building an ai avatar that listens, speaks, and responds in real time on Android means chaining speech recognition, language modeling, synthesis, and lip-sync rendering while streaming video to a mobile device. This guide covers the complete architecture and Kotlin code for deploying a voice-interactive digital human on Android, from server API setup to native video rendering.
 
 **Get the complete source code:**
-- Android client + server: [ZEGOCLOUD/blog-interactive-ai-avatar-android](https://github.com/ZEGOCLOUD/blog-interactive-ai-avatar-android)
-- Web version (for reference): [ZEGOCLOUD/blog-interactive-ai-avatar](https://github.com/ZEGOCLOUD/blog-interactive-ai-avatar)
+- Android + Web client + server: [ZEGOCLOUD/blog-interactive-ai-avatar](https://github.com/ZEGOCLOUD/blog-interactive-ai-avatar)
 
 ## How to Build an Interactive AI Avatar App for Android (Step-by-Step Guide)
 
