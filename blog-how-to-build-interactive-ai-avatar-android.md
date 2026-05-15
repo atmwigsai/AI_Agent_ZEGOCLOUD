@@ -1,7 +1,7 @@
 ---
 title: "How to Build an Interactive AI Avatar App for Android"
 published: false
-description: "Learn how to create AI avatars for Android with real-time voice interaction using ZEGOCLOUD Express SDK and Conversational AI. This step-by-step guide covers Kotlin implementation, agent registration, instance creation, and native video rendering for ai avatar development."
+description: "Build an interactive AI avatar Android app with real-time voice and video streaming using Kotlin and ZEGOCLOUD."
 tags: aiavatar, android, kotlin, webrtc, digitalhuman
 ---
 
