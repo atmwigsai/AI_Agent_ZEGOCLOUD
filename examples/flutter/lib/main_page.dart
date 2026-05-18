@@ -69,11 +69,6 @@ class _MainPageState extends State<MainPage> {
     } else {
       userId = 'user_${DateTime.now().millisecondsSinceEpoch}';
     }
-
-    // Create canvas view after first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initCanvasView();
-    });
   }
 
   Future<void> _initCanvasView() async {
@@ -138,9 +133,12 @@ class _MainPageState extends State<MainPage> {
         return;
       }
 
-      // Step 5: Create ZEGO engine
+      // Step 5: Create ZEGO engine (must await to ensure native engine is ready)
       _updateStatus('Creating engine...');
-      _zegoService.createEngine(appID);
+      await _zegoService.createEngine(appID);
+
+      // Step 5b: Create canvas view AFTER engine (TextureView requires engine)
+      await _initCanvasView();
 
       // Step 6: Set event handlers
       _setEventHandlers();
@@ -196,11 +194,17 @@ class _MainPageState extends State<MainPage> {
     // Publisher state update
     _zegoService.setOnPublisherStateUpdate((streamID, state, errorCode, extendedData) {
       debugPrint('Publisher state: streamID=$streamID, state=$state, error=$errorCode');
+      if (errorCode != 0) {
+        _updateStatus('Publish error: $errorCode');
+      }
     });
 
     // Player state update
     _zegoService.setOnPlayerStateUpdate((streamID, state, errorCode, extendedData) {
       debugPrint('Player state: streamID=$streamID, state=$state, error=$errorCode');
+      if (errorCode != 0) {
+        _updateStatus('Play error: $errorCode');
+      }
     });
   }
 
@@ -260,10 +264,9 @@ class _MainPageState extends State<MainPage> {
       isMicOn = true;
       agentInstanceId = null;
       currentAgentStreamId = null;
+      _playViewWidget = null;
+      _playViewID = null;
     });
-
-    // Recreate canvas view for next session
-    _initCanvasView();
   }
 
   // ========== Toggle Mic ==========

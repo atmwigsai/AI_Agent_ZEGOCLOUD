@@ -17,16 +17,17 @@ class ZegoService {
   // ========== Engine Lifecycle ==========
 
   /// Create ZEGO Express Engine with Token auth mode
-  void createEngine(int appID) {
+  Future<void> createEngine(int appID) async {
     if (isEngineCreated) return;
 
     final profile = ZegoEngineProfile(
       appID,
-      ZegoScenario.HighQualityChatroom,
+      ZegoScenario.General,
       appSign: '', // Using Token auth, not AppSign
+      enablePlatformView: false, // Use TextureRenderer (TextureView) on Android
     );
 
-    ZegoExpressEngine.createEngineWithProfile(profile);
+    await ZegoExpressEngine.createEngineWithProfile(profile);
     _engine = ZegoExpressEngine.instance;
     isEngineCreated = true;
   }
