@@ -65,7 +65,7 @@ export const OPTIONS = async () => {
 export const POST = async (request) => {
   try {
     const body = await request.json();
-    const agentId = body.agentId || "ai_avatar_agent";
+    const agentId = body.agentId || "ai_avatar_agent_v3";
     const agentName = body.agentName || "AI Avatar";
 
     // Skip if already registered
@@ -82,10 +82,12 @@ export const POST = async (request) => {
       AgentId: agentId,
       Name: agentName,
       LLM: {
+        Vendor: "OpenAIChat",
         Url: process.env.LLM_URL || "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
         ApiKey: process.env.LLM_API_KEY || "zego_test",
         Model: process.env.LLM_MODEL || "doubao-1-5-pro-32k-250115",
         SystemPrompt: process.env.LLM_SYSTEM_PROMPT || "You are a friendly AI avatar assistant. Answer concisely.",
+        AddAgentInfo: true,
       },
       TTS: {
         Vendor: "ByteDance",
@@ -105,12 +107,50 @@ export const POST = async (request) => {
       },
     });
 
-    if (result.Code === 0 || result.Code === 410001008) {
-      // 410001008 = agent already exists, treat as success
+    if (result.Code === 0) {
       registeredAgents.add(agentId);
       return NextResponse.json({
         code: 0,
         message: "Agent registered successfully",
+        agentId,
+      }, { headers: corsHeaders });
+    }
+
+    // 410001008 = agent already exists — update it with current credentials
+    if (result.Code === 410001008) {
+      const updateResult = await sendAgentRequest("UpdateAgent", {
+        AgentId: agentId,
+        Name: agentName,
+        LLM: {
+          Vendor: "OpenAIChat",
+          Url: process.env.LLM_URL || "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+          ApiKey: process.env.LLM_API_KEY || "zego_test",
+          Model: process.env.LLM_MODEL || "doubao-1-5-pro-32k-250115",
+          SystemPrompt: process.env.LLM_SYSTEM_PROMPT || "You are a friendly AI avatar assistant. Answer concisely.",
+          AddAgentInfo: true,
+        },
+        TTS: {
+          Vendor: "ByteDance",
+          Params: {
+            app: {
+              appid: process.env.TTS_APP_ID || "zego_test",
+              token: process.env.TTS_TOKEN || "zego_test",
+              cluster: "volcano_tts",
+            },
+            audio: {
+              voice_type: process.env.TTS_VOICE_TYPE || "zh_female_wanwanxiaohe_moon_bigtts",
+            },
+          },
+        },
+        ASR: {
+          Vendor: "Tencent",
+        },
+      });
+      console.log(`[AgentAPI] Action=UpdateAgent Code=${updateResult.Code} Message=${updateResult.Message}`);
+      registeredAgents.add(agentId);
+      return NextResponse.json({
+        code: 0,
+        message: "Agent updated successfully",
         agentId,
       }, { headers: corsHeaders });
     }

@@ -60,7 +60,7 @@ function App() {
     const response = await fetch(`${clientConfig.apiBaseUrl}/api/agent`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ agentId: "ai_avatar_agent", agentName: "AI Avatar" }),
+      body: JSON.stringify({ agentId: "ai_avatar_agent_v3", agentName: "AI Avatar" }),
     });
     const data = await response.json();
     if (data.code !== 0 && data.code !== undefined) {
@@ -136,7 +136,7 @@ function App() {
       // Step 2: Create digital human agent instance
       setStatus("Creating digital human instance...");
       const instanceData = await createInstance({
-        agentId: "ai_avatar_agent",
+        agentId: "ai_avatar_agent_v3",
         userId,
         roomId,
         agentStreamId,
