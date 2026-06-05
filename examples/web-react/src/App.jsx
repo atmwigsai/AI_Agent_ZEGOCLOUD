@@ -39,6 +39,9 @@ function App() {
   const [isMicOn, setIsMicOn] = useState(true);
     const [roomInfo, setRoomInfo] = useState(null);
   const [agentInstanceId, setAgentInstanceId] = useState(null);
+  // Diagnostic subtitles: what ASR heard (user) and what the LLM replied (agent)
+  const [userSubtitle, setUserSubtitle] = useState("");
+  const [agentSubtitle, setAgentSubtitle] = useState("");
 
   // Refs for SDK instances
   const engineRef = useRef(null);
@@ -157,6 +160,28 @@ function App() {
       const engine = new ZegoExpressEngine(clientConfig.appId, "");
       engineRef.current = engine;
       console.log("[Init] Engine created successfully");
+
+      // Enable room channel messages so we receive ASR/LLM subtitles from the agent
+      engine.callExperimentalAPI({ method: "onRecvRoomChannelMessage", params: {} });
+
+      // Listen for agent messages: Cmd 3 = ASR (user speech), Cmd 4 = LLM (agent reply)
+      engine.on("recvExperimentalAPI", (result) => {
+        const { method, content } = result || {};
+        if (method !== "onRecvRoomChannelMessage") return;
+        try {
+          const msg = JSON.parse(content.msgContent);
+          const text = msg?.Data?.Text || "";
+          if (msg.Cmd === 3) {
+            console.log("[ASR] user said:", text);
+            setUserSubtitle(text);
+          } else if (msg.Cmd === 4) {
+            console.log("[LLM] agent reply:", text);
+            setAgentSubtitle(text);
+          }
+        } catch (e) {
+          console.warn("[Subtitle] parse failed:", e);
+        }
+      });
 
       // Setup event handlers
       engine.on("roomStreamUpdate", async (roomID, updateType, streamList) => {
@@ -284,6 +309,8 @@ function App() {
     setAgentInstanceId(null);
     setRoomInfo(null);
     setIsMicOn(true);
+    setUserSubtitle("");
+    setAgentSubtitle("");
   };
 
   // ========== Mic Toggle ==========
@@ -322,6 +349,12 @@ function App() {
             <div className="video-placeholder">
               <div className="avatar-icon">&#x1F916;</div>
               <p>Click "Start Conversation" to begin</p>
+            </div>
+          )}
+          {isConnected && (userSubtitle || agentSubtitle) && (
+            <div className="subtitles">
+              {userSubtitle && <p className="subtitle-user">🧑 {userSubtitle}</p>}
+              {agentSubtitle && <p className="subtitle-agent">🤖 {agentSubtitle}</p>}
             </div>
           )}
         </div>

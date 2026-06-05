@@ -87,6 +87,43 @@ body {
 .video-container {
   width: 100%;
   height: 100%;
+  position: relative;
+}
+
+/* ========== Diagnostic subtitles ========== */
+.subtitles {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.subtitles p {
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 15px;
+  line-height: 1.4;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.65);
+  word-break: break-word;
+}
+
+.subtitle-user {
+  align-self: flex-end;
+  background: rgba(37, 99, 235, 0.8) !important;
+}
+
+.subtitle-agent {
+  align-self: flex-start;
+  background: rgba(0, 0, 0, 0.7) !important;
 }
 
 .video-placeholder {
