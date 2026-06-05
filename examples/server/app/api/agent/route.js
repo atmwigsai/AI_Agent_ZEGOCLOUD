@@ -146,7 +146,7 @@ export const POST = async (request) => {
           Vendor: "Tencent",
         },
       });
-      console.log(`[AgentAPI] Action=UpdateAgent Code=${updateResult.Code} Message=${updateResult.Message}`);
+      console.log(`[AgentAPI] Action=UpdateAgent Code=${updateResult.Code} Message=${updateResult.Message} LLM_URL=${process.env.LLM_URL} TTS_VOICE=${process.env.TTS_VOICE_TYPE}`);
       registeredAgents.add(agentId);
       return NextResponse.json({
         code: 0,
