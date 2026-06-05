@@ -144,6 +144,9 @@ export const POST = async (request) => {
         },
         ASR: {
           Vendor: "Tencent",
+          Params: {
+            language: "en-US",
+          },
         },
       });
       console.log(`[AgentAPI] Action=UpdateAgent Code=${updateResult.Code} Message=${updateResult.Message} LLM_URL=${process.env.LLM_URL} TTS_VOICE=${process.env.TTS_VOICE_TYPE}`);
