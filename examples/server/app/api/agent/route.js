@@ -145,7 +145,7 @@ export const POST = async (request) => {
         ASR: {
           Vendor: "Tencent",
           Params: {
-            language: "en-US",
+            engine_model_type: "16k_en",
           },
         },
       });
