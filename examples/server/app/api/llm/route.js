@@ -49,11 +49,24 @@ export const POST = async (request) => {
       }),
     });
 
+    const rawText = await n8nResponse.text();
+    console.log(`[LLM Proxy] n8n status=${n8nResponse.status} raw="${rawText.substring(0, 200)}"`);
+
     if (!n8nResponse.ok) {
-      throw new Error(`n8n returned ${n8nResponse.status}: ${await n8nResponse.text()}`);
+      throw new Error(`n8n returned ${n8nResponse.status}: ${rawText}`);
     }
 
-    const n8nData = await n8nResponse.json();
+    if (!rawText) {
+      throw new Error("n8n returned empty response — is the workflow activated in production mode?");
+    }
+
+    let n8nData;
+    try {
+      n8nData = JSON.parse(rawText);
+    } catch {
+      throw new Error(`n8n returned non-JSON: ${rawText.substring(0, 200)}`);
+    }
+
     // Handle both array response and object response from n8n
     const data = Array.isArray(n8nData) ? n8nData[0] : n8nData;
     const replyText = data?.reply || data?.output || data?.text || data?.message || "";
