@@ -42,6 +42,8 @@ function App() {
   // Diagnostic subtitles: what ASR heard (user) and what the LLM replied (agent)
   const [userSubtitle, setUserSubtitle] = useState("");
   const [agentSubtitle, setAgentSubtitle] = useState("");
+  // Text chat input (send text directly to agent, bypassing ASR)
+  const [chatText, setChatText] = useState("");
 
   // Refs for SDK instances
   const engineRef = useRef(null);
@@ -314,6 +316,28 @@ function App() {
     setAgentSubtitle("");
   };
 
+  // ========== Send Text to Agent (bypasses ASR) ==========
+  const sendChat = async () => {
+    const text = chatText.trim();
+    if (!text || !agentInstanceId) return;
+    setChatText("");
+    setUserSubtitle(text);
+    try {
+      const response = await fetch(`${clientConfig.apiBaseUrl}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agentInstanceId, text }),
+      });
+      const data = await response.json();
+      if (data.code !== 0) {
+        console.error("[Chat] send failed:", data.message);
+        setStatus(`Chat error: ${data.message}`);
+      }
+    } catch (error) {
+      console.error("[Chat] send error:", error);
+    }
+  };
+
   // ========== Mic Toggle ==========
   const toggleMic = () => {
     const engine = engineRef.current;
@@ -363,6 +387,21 @@ function App() {
 
       {/* Controls */}
       <div className="controls-section">
+        {isConnected && (
+          <div className="chat-input-row">
+            <input
+              type="text"
+              className="chat-input"
+              placeholder="Type a message to the avatar..."
+              value={chatText}
+              onChange={(e) => setChatText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") sendChat(); }}
+            />
+            <button onClick={sendChat} disabled={!chatText.trim()} className="btn btn-send">
+              Send
+            </button>
+          </div>
+        )}
         <div className="action-buttons">
           <button
             onClick={toggleMic}

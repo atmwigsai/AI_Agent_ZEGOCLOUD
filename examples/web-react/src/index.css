@@ -224,6 +224,36 @@ body {
   background: #e53935;
 }
 
+/* ========== Chat input row ========== */
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+}
+
+.chat-input:focus {
+  border-color: #2563eb;
+}
+
+.btn-send {
+  background: #2563eb;
+  color: #fff;
+}
+
+.btn-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ========== Video container styles ========== */
 #remote-video {
   width: 100%;
