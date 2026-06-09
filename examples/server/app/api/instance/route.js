@@ -62,7 +62,7 @@ export const OPTIONS = async () => {
 export const POST = async (request) => {
   try {
     const body = await request.json();
-    const agentId = body.agentId || "ai_avatar_agent_v3";
+    const agentId = body.agentId || "ai_avatar_agent_v4";
     const userId = body.userId;
     const roomId = body.roomId;
     const agentStreamId = body.agentStreamId;

@@ -71,14 +71,73 @@ export const POST = async (request) => {
     const data = Array.isArray(n8nData) ? n8nData[0] : n8nData;
     const replyText = data?.reply || data?.output || data?.text || data?.message || "";
 
-    console.log(`[LLM Proxy] reply="${replyText.substring(0, 80)}..."`);
+    console.log(`[LLM Proxy] reply="${replyText.substring(0, 80)}..." stream=${body.stream !== false}`);
 
+    const id = `chatcmpl-${crypto.randomBytes(12).toString("hex")}`;
+    const created = Math.floor(Date.now() / 1000);
+    const model = body.model || "n8n-rag";
+
+    // ZEGOCLOUD (and most realtime agents) call the LLM with stream:true and
+    // expect an OpenAI-style SSE stream of chat.completion.chunk events.
+    // Default to streaming unless the caller explicitly sets stream:false.
+    if (body.stream !== false) {
+      const encoder = new TextEncoder();
+      const sse = (obj) => encoder.encode(`data: ${JSON.stringify(obj)}\n\n`);
+
+      const stream = new ReadableStream({
+        start(controller) {
+          // First chunk: role
+          controller.enqueue(
+            sse({
+              id,
+              object: "chat.completion.chunk",
+              created,
+              model,
+              choices: [{ index: 0, delta: { role: "assistant" }, finish_reason: null }],
+            })
+          );
+          // Content chunk: the full reply text
+          controller.enqueue(
+            sse({
+              id,
+              object: "chat.completion.chunk",
+              created,
+              model,
+              choices: [{ index: 0, delta: { content: replyText }, finish_reason: null }],
+            })
+          );
+          // Final chunk: finish
+          controller.enqueue(
+            sse({
+              id,
+              object: "chat.completion.chunk",
+              created,
+              model,
+              choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+            })
+          );
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        },
+      });
+
+      return new Response(stream, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/event-stream; charset=utf-8",
+          "Cache-Control": "no-cache, no-transform",
+          Connection: "keep-alive",
+        },
+      });
+    }
+
+    // Non-streaming fallback (e.g. curl tests with stream:false)
     return NextResponse.json(
       {
-        id: `chatcmpl-${crypto.randomBytes(12).toString("hex")}`,
+        id,
         object: "chat.completion",
-        created: Math.floor(Date.now() / 1000),
-        model: body.model || "n8n-rag",
+        created,
+        model,
         choices: [
           {
             index: 0,
