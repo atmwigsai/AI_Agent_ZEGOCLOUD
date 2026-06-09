@@ -171,11 +171,12 @@ function App() {
         try {
           const msg = JSON.parse(content.msgContent);
           const text = msg?.Data?.Text || "";
+          const endFlag = msg?.Data?.EndFlag;
+          // Log every raw message so we can see all Cmd types and EndFlag values
+          console.log(`[AgentMsg] Cmd=${msg.Cmd} EndFlag=${endFlag} text="${text}"`, msg);
           if (msg.Cmd === 3) {
-            console.log("[ASR] user said:", text);
             setUserSubtitle(text);
           } else if (msg.Cmd === 4) {
-            console.log("[LLM] agent reply:", text);
             setAgentSubtitle(text);
           }
         } catch (e) {
