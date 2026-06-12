@@ -68,7 +68,7 @@ export const POST = async (request) => {
     const agentStreamId = body.agentStreamId;
     const agentUserId = body.agentUserId;
     const userStreamId = body.userStreamId;
-    const digitalHumanId = body.digitalHumanId || "c4b56d5c-db98-4d91-86d4-5a97b507da97";
+    const digitalHumanId = body.digitalHumanId || process.env.DIGITAL_HUMAN_ID || "c4b56d5c-db98-4d91-86d4-5a97b507da97";
 
     if (!userId || !roomId || !agentStreamId || !agentUserId || !userStreamId) {
       return NextResponse.json({

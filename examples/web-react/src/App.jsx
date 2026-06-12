@@ -147,7 +147,7 @@ function App() {
         agentStreamId,
         agentUserId,
         userStreamId,
-        digitalHumanId: "c4b56d5c-db98-4d91-86d4-5a97b507da97",
+        // digitalHumanId is controlled by the server's DIGITAL_HUMAN_ID env var
       });
       setAgentInstanceId(instanceData.agentInstanceId);
 
