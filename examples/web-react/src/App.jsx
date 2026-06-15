@@ -191,9 +191,10 @@ function App() {
         if (updateType === "ADD" && streamList.length > 0) {
           for (const stream of streamList) {
             try {
-              // Play agent stream with jitter buffer optimization
+              // Play agent stream with jitter buffer optimization.
+              // 200ms thay vì 500ms: giảm độ trễ phát âm thanh avatar (đánh đổi độ mượt rất nhỏ).
               const mediaStream = await engine.startPlayingStream(stream.streamID, {
-                jitterBufferTarget: 500,
+                jitterBufferTarget: 200,
               });
               if (mediaStream) {
                 const remoteView = engine.createRemoteStreamView(mediaStream);

@@ -97,6 +97,10 @@ export const POST = async (request) => {
         Messages: [],
         WindowSize: 10,
       },
+      // Barge-in: ngắt ngay khi khách nói chen ngang (0 = interrupt immediately)
+      AdvancedConfig: {
+        InterruptMode: 0,
+      },
     });
 
     if (result.Code === 0) {
@@ -154,6 +158,10 @@ export const POST = async (request) => {
           SyncMode: 1,
           Messages: [],
           WindowSize: 10,
+        },
+        // Barge-in: ngắt ngay khi khách nói chen ngang (0 = interrupt immediately)
+        AdvancedConfig: {
+          InterruptMode: 0,
         },
       });
 
