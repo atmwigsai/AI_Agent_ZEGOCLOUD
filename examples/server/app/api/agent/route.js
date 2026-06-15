@@ -99,6 +99,8 @@ export const POST = async (request) => {
           },
           audio: {
             voice_type: process.env.TTS_VOICE_TYPE || "zh_female_wanwanxiaohe_moon_bigtts",
+            // Tốc độ đọc: 1.0 = mặc định, >1 = nói nhanh hơn (range 0.2–3.0)
+            speed_ratio: Number(process.env.TTS_SPEED_RATIO || 1.15),
           },
         },
       },
