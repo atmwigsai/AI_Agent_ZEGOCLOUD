@@ -13,8 +13,40 @@ export const OPTIONS = async () => {
   return new NextResponse(null, { status: 200, headers: corsHeaders });
 };
 
-// Proxy: receives OpenAI Chat Completions format from ZEGOCLOUD,
-// calls n8n RAG webhook, returns OpenAI-compatible response.
+// Pull the assistant text out of a non-streaming n8n JSON payload.
+const extractReply = (raw) => {
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return raw.trim();
+  }
+  const d = Array.isArray(parsed) ? parsed[0] : parsed;
+  return d?.reply || d?.output || d?.text || d?.message || "";
+};
+
+// Parse one line of an n8n streamed response (JSONL or SSE "data:" framing).
+// Returns the incremental token text if it's a content "item", else "".
+const parseItemLine = (line) => {
+  const t = line.replace(/^data:\s*/, "").trim();
+  if (!t || t === "[DONE]") return "";
+  try {
+    const obj = JSON.parse(t);
+    if (obj?.type === "item" && typeof obj.content === "string") return obj.content;
+  } catch {
+    // partial chunk or non-JSONL line — ignore
+  }
+  return "";
+};
+
+// Proxy: receives OpenAI Chat Completions format from ZEGOCLOUD, calls the n8n
+// RAG webhook, and re-emits the answer as an OpenAI SSE stream.
+//
+// If the n8n workflow has streaming enabled (Webhook "Respond" = Streaming
+// Response + AI Agent streaming), it returns JSONL/SSE chunks which we forward
+// token-by-token so TTS can start on the first words. If n8n still returns a
+// single JSON object (streaming off), we fall back to emitting the full reply
+// as one chunk — so this is safe to deploy before enabling n8n streaming.
 export const POST = async (request) => {
   try {
     const body = await request.json();
@@ -25,7 +57,6 @@ export const POST = async (request) => {
     const userMessage = lastUserMsg?.content || "";
 
     // Extract sessionId from ZEGOCLOUD agent info (injected when AddAgentInfo: true)
-    // ZEGOCLOUD injects room_id / user_id as top-level fields alongside messages
     const sessionId =
       body.room_id ||
       body.user_id ||
@@ -41,7 +72,10 @@ export const POST = async (request) => {
 
     const n8nResponse = await fetch(n8nUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json, text/event-stream",
+      },
       body: JSON.stringify({
         sessionId,
         message: userMessage,
@@ -49,106 +83,121 @@ export const POST = async (request) => {
       }),
     });
 
-    const rawText = await n8nResponse.text();
-    console.log(`[LLM Proxy] n8n status=${n8nResponse.status} raw="${rawText.substring(0, 200)}"`);
-
     if (!n8nResponse.ok) {
-      throw new Error(`n8n returned ${n8nResponse.status}: ${rawText}`);
+      const errText = await n8nResponse.text().catch(() => "");
+      throw new Error(`n8n returned ${n8nResponse.status}: ${errText.substring(0, 200)}`);
     }
-
-    if (!rawText) {
-      throw new Error("n8n returned empty response — is the workflow activated in production mode?");
-    }
-
-    let n8nData;
-    try {
-      n8nData = JSON.parse(rawText);
-    } catch {
-      throw new Error(`n8n returned non-JSON: ${rawText.substring(0, 200)}`);
-    }
-
-    // Handle both array response and object response from n8n
-    const data = Array.isArray(n8nData) ? n8nData[0] : n8nData;
-    const replyText = data?.reply || data?.output || data?.text || data?.message || "";
-
-    console.log(`[LLM Proxy] reply="${replyText.substring(0, 80)}..." stream=${body.stream !== false}`);
 
     const id = `chatcmpl-${crypto.randomBytes(12).toString("hex")}`;
     const created = Math.floor(Date.now() / 1000);
     const model = body.model || "n8n-rag";
 
-    // ZEGOCLOUD (and most realtime agents) call the LLM with stream:true and
-    // expect an OpenAI-style SSE stream of chat.completion.chunk events.
-    // Default to streaming unless the caller explicitly sets stream:false.
-    if (body.stream !== false) {
-      const encoder = new TextEncoder();
-      const sse = (obj) => encoder.encode(`data: ${JSON.stringify(obj)}\n\n`);
+    // Non-streaming path (e.g. curl tests with stream:false): aggregate everything.
+    if (body.stream === false) {
+      const raw = await n8nResponse.text();
+      let replyText = "";
+      let sawItem = false;
+      for (const line of raw.split("\n")) {
+        const content = parseItemLine(line);
+        if (content) {
+          replyText += content;
+          sawItem = true;
+        }
+      }
+      if (!sawItem) replyText = extractReply(raw);
+      console.log(`[LLM Proxy] (non-stream) reply="${replyText.substring(0, 80)}..."`);
 
-      const stream = new ReadableStream({
-        start(controller) {
-          // First chunk: role
-          controller.enqueue(
-            sse({
-              id,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              choices: [{ index: 0, delta: { role: "assistant" }, finish_reason: null }],
-            })
-          );
-          // Content chunk: the full reply text
-          controller.enqueue(
-            sse({
-              id,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              choices: [{ index: 0, delta: { content: replyText }, finish_reason: null }],
-            })
-          );
-          // Final chunk: finish
-          controller.enqueue(
-            sse({
-              id,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
-            })
-          );
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          controller.close();
+      return NextResponse.json(
+        {
+          id,
+          object: "chat.completion",
+          created,
+          model,
+          choices: [
+            {
+              index: 0,
+              message: { role: "assistant", content: replyText },
+              finish_reason: "stop",
+            },
+          ],
+          usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
         },
-      });
-
-      return new Response(stream, {
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "text/event-stream; charset=utf-8",
-          "Cache-Control": "no-cache, no-transform",
-          Connection: "keep-alive",
-        },
-      });
+        { headers: corsHeaders }
+      );
     }
 
-    // Non-streaming fallback (e.g. curl tests with stream:false)
-    return NextResponse.json(
-      {
+    // Streaming path: forward n8n items as OpenAI chat.completion.chunk events.
+    const encoder = new TextEncoder();
+    const sse = (obj) => encoder.encode(`data: ${JSON.stringify(obj)}\n\n`);
+    const chunk = (delta, finish = null) =>
+      sse({
         id,
-        object: "chat.completion",
+        object: "chat.completion.chunk",
         created,
         model,
-        choices: [
-          {
-            index: 0,
-            message: { role: "assistant", content: replyText },
-            finish_reason: "stop",
-          },
-        ],
-        usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+        choices: [{ index: 0, delta, finish_reason: finish }],
+      });
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        // First chunk: role
+        controller.enqueue(chunk({ role: "assistant" }));
+
+        const reader = n8nResponse.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let raw = "";
+        let sawItem = false;
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const text = decoder.decode(value, { stream: true });
+            raw += text;
+            buffer += text;
+            let nl;
+            while ((nl = buffer.indexOf("\n")) >= 0) {
+              const line = buffer.slice(0, nl);
+              buffer = buffer.slice(nl + 1);
+              const content = parseItemLine(line);
+              if (content) {
+                sawItem = true;
+                controller.enqueue(chunk({ content }));
+              }
+            }
+          }
+          // Flush any trailing partial line
+          if (buffer.trim()) {
+            const content = parseItemLine(buffer);
+            if (content) {
+              sawItem = true;
+              controller.enqueue(chunk({ content }));
+            }
+          }
+          // Fallback: n8n wasn't streaming (single JSON object) — emit it all at once.
+          if (!sawItem) {
+            const replyText = extractReply(raw);
+            if (replyText) controller.enqueue(chunk({ content: replyText }));
+          }
+        } catch (e) {
+          console.error("[LLM Proxy] stream error:", e.message);
+        }
+
+        controller.enqueue(chunk({}, "stop"));
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
       },
-      { headers: corsHeaders }
-    );
+    });
+
+    return new Response(stream, {
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "text/event-stream; charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+      },
+    });
   } catch (error) {
     console.error("[LLM Proxy] Error:", error.message);
     return NextResponse.json(
