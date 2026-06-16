@@ -19,6 +19,16 @@ const createdInstances = new Map(); // agentInstanceId -> { createdAt, roomId }
 const getAppId = () => Number(process.env.APP_ID || process.env.ZEGO_APPID || 0);
 const getServerSecret = () => process.env.SERVER_SECRET || process.env.ZEGO_SERVER_SECRET || "";
 
+// VAD turn-taking: cho khách thời gian ngừng giữa câu mà không bị cắt sớm.
+// SilenceSegmentation = im lặng bao lâu (ms) mới coi là "nói xong" (default ZEGO = 500).
+// PauseInterval phải > SilenceSegmentation để bật gộp nhiều câu vào cùng một lượt.
+const getVadConfig = () => ({
+  TurnDetectConfig: {
+    SilenceSegmentation: Number(process.env.VAD_SILENCE_MS || 1000),
+    PauseInterval: Number(process.env.VAD_PAUSE_MS || 1500),
+  },
+});
+
 const generateSignature = (appId, serverSecret, signatureNonce, timestamp) => {
   return crypto
     .createHash("md5")
@@ -101,6 +111,7 @@ export const POST = async (request) => {
       AdvancedConfig: {
         InterruptMode: 0,
       },
+      VAD: getVadConfig(),
     });
 
     if (result.Code === 0) {
@@ -163,6 +174,7 @@ export const POST = async (request) => {
         AdvancedConfig: {
           InterruptMode: 0,
         },
+        VAD: getVadConfig(),
       });
 
       if (retryResult.Code === 0) {
