@@ -26,13 +26,22 @@ const extractReply = (raw) => {
 };
 
 // Parse one line of an n8n streamed response (JSONL or SSE "data:" framing).
-// Returns the incremental token text if it's a content "item", else "".
+// n8n sends content tokens as {"type":"item","content":"..."} wrapped by
+// {"type":"begin"} / {"type":"end"} control frames. Be lenient: accept any
+// chunk carrying a string `content` that isn't a begin/end control frame, so
+// minor format differences between n8n versions still work.
 const parseItemLine = (line) => {
   const t = line.replace(/^data:\s*/, "").trim();
   if (!t || t === "[DONE]") return "";
   try {
     const obj = JSON.parse(t);
-    if (obj?.type === "item" && typeof obj.content === "string") return obj.content;
+    if (
+      typeof obj?.content === "string" &&
+      obj.type !== "begin" &&
+      obj.type !== "end"
+    ) {
+      return obj.content;
+    }
   } catch {
     // partial chunk or non-JSONL line — ignore
   }
@@ -180,6 +189,9 @@ export const POST = async (request) => {
             const replyText = extractReply(raw);
             if (replyText) controller.enqueue(chunk({ content: replyText }));
           }
+          console.log(
+            `[LLM Proxy] stream done sawItem=${sawItem} rawLen=${raw.length} rawHead=${JSON.stringify(raw.slice(0, 300))}`
+          );
         } catch (e) {
           console.error("[LLM Proxy] stream error:", e.message);
         }
