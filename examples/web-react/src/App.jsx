@@ -420,7 +420,6 @@ function App() {
         <div id="remote-video" className="video-container">
           {!isConnected && (
             <div className="video-placeholder">
-              <div className="avatar-icon">&#x1F916;</div>
               <p>Hover the left edge, then press power to begin</p>
             </div>
           )}
