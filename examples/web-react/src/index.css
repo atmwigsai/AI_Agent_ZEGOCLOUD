@@ -7,81 +7,26 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background: #f0f2f5;
-  color: #333;
-  min-height: 100vh;
-}
-
-/* ========== App Container ========== */
-.app-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  gap: 12px;
-}
-
-/* ========== Header ========== */
-.app-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  flex-shrink: 0;
-}
-
-.app-header h1 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1a1a2e;
-}
-
-.status-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #666;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ccc;
-}
-
-.status-dot.connected {
-  background: #4caf50;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.room-info {
-  font-size: 11px;
-  color: #999;
-  background: #f5f5f5;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
-/* ========== Video Section ========== */
-.video-section {
-  flex: 1;
-  min-height: 300px;
-  border-radius: 12px;
-  overflow: hidden;
   background: #000;
+  color: #fff;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ========== App Container (fullscreen, all black) ========== */
+.app-container {
   position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  overflow: hidden;
+}
+
+/* ========== Video Section (fills the whole viewport) ========== */
+.video-section {
+  position: absolute;
+  inset: 0;
+  background: #000;
 }
 
 .video-container {
@@ -90,185 +35,305 @@ body {
   position: relative;
 }
 
-/* ========== Diagnostic subtitles ========== */
-.subtitles {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 600px;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  pointer-events: none;
-}
-
-.subtitles p {
-  margin: 0;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 15px;
-  line-height: 1.4;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.65);
-  word-break: break-word;
-}
-
-.subtitle-user {
-  align-self: flex-end;
-  background: rgba(37, 99, 235, 0.8) !important;
-}
-
-.subtitle-agent {
-  align-self: flex-start;
-  background: rgba(0, 0, 0, 0.7) !important;
-}
-
-.video-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #888;
-  gap: 12px;
-}
-
-.avatar-icon {
-  font-size: 64px;
-  line-height: 1;
-}
-
-.video-placeholder p {
-  font-size: 14px;
-}
-
-/* ========== Controls Section ========== */
-.controls-section {
-  background: #fff;
-  border-radius: 12px;
-  padding: 12px 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-}
-
-/* ========== Buttons ========== */
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-mic {
-  min-width: 120px;
-  color: #fff;
-}
-
-.btn-mic.mic-on {
-  background: #2196f3;
-}
-
-.btn-mic.mic-on:hover:not(:disabled) {
-  background: #1e88e5;
-}
-
-.btn-mic.mic-off {
-  background: #ff9800;
-}
-
-.btn-mic.mic-off:hover:not(:disabled) {
-  background: #f57c00;
-}
-
-.btn-start {
-  background: #4caf50;
-  color: #fff;
-  min-width: 180px;
-}
-
-.btn-start:hover:not(:disabled) {
-  background: #43a047;
-}
-
-.btn-end {
-  background: #f44336;
-  color: #fff;
-  min-width: 180px;
-}
-
-.btn-end:hover:not(:disabled) {
-  background: #e53935;
-}
-
-/* ========== Chat input row ========== */
-.chat-input-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.chat-input {
-  flex: 1;
-  padding: 10px 14px;
-  font-size: 15px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  outline: none;
-}
-
-.chat-input:focus {
-  border-color: #2563eb;
-}
-
-.btn-send {
-  background: #2563eb;
-  color: #fff;
-}
-
-.btn-send:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ========== Video container styles ========== */
 #remote-video {
   width: 100%;
   height: 100%;
   background: #000;
 }
 
-#remote-video video {
+#remote-video video,
+#remote-video canvas {
   width: 100% !important;
   height: 100% !important;
   object-fit: contain !important;
 }
 
-#remote-video canvas {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: contain !important;
+/* ========== Placeholder (before connecting) ========== */
+.video-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
+  gap: 14px;
+}
+
+.avatar-icon {
+  font-size: 64px;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.video-placeholder p {
+  font-size: 14px;
+  letter-spacing: 0.2px;
+}
+
+/* ========== Diagnostic subtitles ========== */
+.subtitles {
+  position: absolute;
+  bottom: 88px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 640px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.subtitles p {
+  margin: 0;
+  padding: 9px 15px;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.4;
+  color: #fff;
+  background: rgba(20, 20, 20, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  word-break: break-word;
+}
+
+.subtitle-user {
+  align-self: flex-end;
+  background: rgba(37, 99, 235, 0.55) !important;
+}
+
+.subtitle-agent {
+  align-self: flex-start;
+}
+
+/* ========== Status pill (minimal, top-right) ========== */
+.status-pill {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.status-pill.visible {
+  opacity: 1;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.status-dot.connected {
+  background: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.8);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+/* ========== Left control rail (hidden, reveal on hover) ========== */
+.control-rail {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  /* Wide invisible hover zone so the rail is easy to summon */
+  padding: 40px 28px 40px 0;
+}
+
+/* Thin glowing handle visible when the rail is idle */
+.rail-handle {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 56px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+  transition: opacity 0.25s ease;
+}
+
+.control-rail:hover .rail-handle {
+  opacity: 0;
+}
+
+/* The stack of round buttons */
+.rail-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-left: 16px;
+  opacity: 0;
+  transform: translateX(-24px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+
+.control-rail:hover .rail-buttons {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+/* ========== Round glass buttons ========== */
+.rail-btn {
+  width: 56px;
+  height: 56px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  transition: transform 0.18s ease, background 0.18s ease,
+    border-color 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+.rail-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.rail-btn:hover:not(:disabled) {
+  transform: scale(1.08);
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.rail-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.rail-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Power button: green = start, red = end */
+.rail-btn.power-start {
+  border-color: rgba(74, 222, 128, 0.6);
+  box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.25),
+    0 0 20px rgba(74, 222, 128, 0.35), 0 8px 24px rgba(0, 0, 0, 0.45);
+  color: #6ee7a0;
+}
+
+.rail-btn.power-end {
+  border-color: rgba(248, 113, 113, 0.6);
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.25),
+    0 0 20px rgba(248, 113, 113, 0.35), 0 8px 24px rgba(0, 0, 0, 0.45);
+  color: #fca5a5;
+}
+
+/* Mic muted state */
+.rail-btn.mic-off {
+  border-color: rgba(251, 191, 36, 0.55);
+  color: #fcd34d;
+}
+
+/* Keyboard active (chat open) */
+.rail-btn.chat-open {
+  background: rgba(96, 165, 250, 0.22);
+  border-color: rgba(96, 165, 250, 0.6);
+  color: #93c5fd;
+}
+
+/* ========== Floating chat pill ========== */
+.chat-bar {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(92vw, 560px);
+  padding: 8px 8px 8px 18px;
+  border-radius: 999px;
+  background: rgba(20, 20, 20, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.chat-bar.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.chat-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 15px;
+}
+
+.chat-input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.btn-send {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s ease, opacity 0.18s ease;
+}
+
+.btn-send svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-send:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.btn-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

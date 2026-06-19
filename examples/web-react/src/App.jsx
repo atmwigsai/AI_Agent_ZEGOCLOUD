@@ -32,6 +32,60 @@ const getErrorMessage = (error) => {
   }
 };
 
+// ========== Inline SVG Icons ==========
+const PowerIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2v10" />
+    <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+  </svg>
+);
+
+const MicIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round">
+    <rect x="9" y="2" width="6" height="12" rx="3" />
+    <path d="M5 10a7 7 0 0 0 14 0" />
+    <line x1="12" y1="17" x2="12" y2="22" />
+    <line x1="8" y1="22" x2="16" y2="22" />
+  </svg>
+);
+
+const MicOffIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round">
+    <line x1="2" y1="2" x2="22" y2="22" />
+    <path d="M9 9v1a3 3 0 0 0 5.12 2.12" />
+    <path d="M15 9.34V5a3 3 0 0 0-5.94-.6" />
+    <path d="M5 10a7 7 0 0 0 10.7 5.98" />
+    <path d="M19 10a7 7 0 0 1-.11 1.23" />
+    <line x1="12" y1="17" x2="12" y2="22" />
+    <line x1="8" y1="22" x2="16" y2="22" />
+  </svg>
+);
+
+const KeyboardIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="5" width="20" height="14" rx="2" />
+    <line x1="6" y1="9" x2="6" y2="9" />
+    <line x1="10" y1="9" x2="10" y2="9" />
+    <line x1="14" y1="9" x2="14" y2="9" />
+    <line x1="18" y1="9" x2="18" y2="9" />
+    <line x1="6" y1="13" x2="6" y2="13" />
+    <line x1="18" y1="13" x2="18" y2="13" />
+    <line x1="9" y1="16" x2="15" y2="16" />
+  </svg>
+);
+
+const SendIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round">
+    <line x1="22" y1="2" x2="11" y2="13" />
+    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+  </svg>
+);
+
 function App() {
   // ========== State ==========
   const [status, setStatus] = useState("Ready");
@@ -44,6 +98,8 @@ function App() {
   const [agentSubtitle, setAgentSubtitle] = useState("");
   // Text chat input (send text directly to agent, bypassing ASR)
   const [chatText, setChatText] = useState("");
+  // Whether the floating chat bar is open
+  const [showChat, setShowChat] = useState(false);
 
   // Refs for SDK instances
   const engineRef = useRef(null);
@@ -315,6 +371,7 @@ function App() {
     setIsMicOn(true);
     setUserSubtitle("");
     setAgentSubtitle("");
+    setShowChat(false);
   };
 
   // ========== Send Text to Agent (bypasses ASR) ==========
@@ -358,23 +415,13 @@ function App() {
   // ========== Render ==========
   return (
     <div className="app-container">
-      {/* Header */}
-      <div className="app-header">
-        <h1>Interactive AI Avatar</h1>
-        <div className="status-bar">
-          <span className={`status-dot ${isConnected ? "connected" : ""}`}></span>
-          <span className="status-text">{status}</span>
-          {roomInfo && <span className="room-info">Room: {roomInfo.roomId}</span>}
-        </div>
-      </div>
-
-      {/* Video Container */}
+      {/* Fullscreen avatar video */}
       <div className="video-section">
         <div id="remote-video" className="video-container">
           {!isConnected && (
             <div className="video-placeholder">
               <div className="avatar-icon">&#x1F916;</div>
-              <p>Click "Start Conversation" to begin</p>
+              <p>Hover the left edge, then press power to begin</p>
             </div>
           )}
           {isConnected && (userSubtitle || agentSubtitle) && (
@@ -386,41 +433,66 @@ function App() {
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="controls-section">
-        {isConnected && (
-          <div className="chat-input-row">
-            <input
-              type="text"
-              className="chat-input"
-              placeholder="Type a message to the avatar..."
-              value={chatText}
-              onChange={(e) => setChatText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") sendChat(); }}
-            />
-            <button onClick={sendChat} disabled={!chatText.trim()} className="btn btn-send">
-              Send
-            </button>
-          </div>
-        )}
-        <div className="action-buttons">
+      {/* Minimal status pill (top-right) */}
+      <div className={`status-pill ${isConnected ? "visible" : ""}`}>
+        <span className={`status-dot ${isConnected ? "connected" : ""}`}></span>
+        <span>{status}</span>
+      </div>
+
+      {/* Left control rail — hidden, reveals 3 round buttons on hover */}
+      <div className="control-rail">
+        <span className="rail-handle"></span>
+        <div className="rail-buttons">
+          {/* Power: start (green) / end (red) */}
           <button
+            type="button"
+            onClick={isConnected ? endConversation : startConversation}
+            className={`rail-btn ${isConnected ? "power-end" : "power-start"}`}
+            title={isConnected ? "End conversation" : "Start conversation"}
+            aria-label={isConnected ? "End conversation" : "Start conversation"}
+          >
+            <PowerIcon />
+          </button>
+
+          {/* Mic toggle */}
+          <button
+            type="button"
             onClick={toggleMic}
             disabled={!isConnected}
-            className={`btn btn-mic ${isMicOn ? "mic-on" : "mic-off"}`}
+            className={`rail-btn ${isMicOn ? "mic-on" : "mic-off"}`}
+            title={isMicOn ? "Mute microphone" : "Unmute microphone"}
+            aria-label={isMicOn ? "Mute microphone" : "Unmute microphone"}
           >
-            {isMicOn ? "Mic ON" : "Mic OFF"}
+            {isMicOn ? <MicIcon /> : <MicOffIcon />}
           </button>
-          {!isConnected ? (
-            <button onClick={startConversation} className="btn btn-start">
-              Start Conversation
-            </button>
-          ) : (
-            <button onClick={endConversation} className="btn btn-end">
-              End Conversation
-            </button>
-          )}
+
+          {/* Keyboard: toggle chat bar */}
+          <button
+            type="button"
+            onClick={() => setShowChat((v) => !v)}
+            disabled={!isConnected}
+            className={`rail-btn ${showChat ? "chat-open" : ""}`}
+            title="Type a message"
+            aria-label="Type a message"
+          >
+            <KeyboardIcon />
+          </button>
         </div>
+      </div>
+
+      {/* Floating chat pill */}
+      <div className={`chat-bar ${showChat && isConnected ? "visible" : ""}`}>
+        <input
+          type="text"
+          className="chat-input"
+          placeholder="Type a message to the avatar..."
+          value={chatText}
+          onChange={(e) => setChatText(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") sendChat(); }}
+        />
+        <button onClick={sendChat} disabled={!chatText.trim()} className="btn-send" aria-label="Send">
+          <SendIcon />
+        </button>
       </div>
     </div>
   );
